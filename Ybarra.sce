@@ -112,9 +112,6 @@ Z0(4,3) = Z0(3,4)
 Zshunt0(1) = %i*0.4201
 Zshunt1(1) = 0.011+%i*0.114
 
-// PARTE ADICIONAL PARA SEGUNDA PARTE DA ATIVIDADE
-//Zshunt1(4) = %i*1.312
-
 //CALCULO DE MATRIZES
 //Calculo Ybarra1
 Ybarra1 = ybarra(Zshunt1,Z1);
