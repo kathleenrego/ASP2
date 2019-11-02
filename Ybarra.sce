@@ -8,41 +8,50 @@ clc
 
 
 //Calculo do Ybarra
+NB = 4
+//NB=5
+Z1=zeros(NB,NB)
+Z0=zeros(NB,NB)
+Zb=zeros(NB,NB)
+Zshunt0 = zeros(NB,1)
+Zshunt1 = zeros(NB,1)
 
 funcprot(0);
-function[Y]= ybarra(Zshunt,Z, NB)
+function[Y]= ybarra(Zshunt,Z)
     for i = 1:NB
         if Zshunt(i) ~= 0.0
             Y(i,i) = (Zshunt(i))^-1
         else
             Y(i,i) = 0.0
         end
-        
+
         for j = 1:NB
             if abs(Z(i,j)) ~= 0
-               Y(i,j) = (-1)*Z(i,j)^-1 
-               Y(i,i) = Y(i,i) - Y(i,j)      
-            end 
-             
+               Y(i,j) = (-1)*Z(i,j)^-1
+               Y(i,i) = Y(i,i) - Y(i,j)
+            end
+
         end
     end
 endfunction
-function[V]= vfalta(Zb,Icc,seq, NB)
+function[V]= vfalta(Zb,Icc,seq)
     if(seq == 1)
         for i = 1:NB
-            V(i,1) = 1 - Zb(i,NB)*Icc(seq+1,1)
+            V(i,1) = 1 - Zb(i,4)*Icc(seq+1,1)
         end
     else
        for i = 1:NB
-            V(i,1) = -(Zb(i,NB)*Icc(seq+1,1))
+            V(i,1) = -(Zb(i,4)*Icc(seq+1,1))
         end
     end
 endfunction
-function[I]= ilinha(Vf,Z, NB)
+function[I]= ilinha(Vf,Z)
     for i = 1:NB
          for j = 1:NB
               if  (Z(i,j)) ~= 0.0
-                  I(i,j) = ((Vf(i)-Vf(j)) / Z(i,j));
+                  I(i,j) = ((Vf(i,1)-Vf(j,1)) / Z(i,j));
+              else
+                  I(i,j) = 0;
               end
          end
     end
@@ -64,20 +73,10 @@ function[p]= topolar(k)
         for j = 1:size(k, "c")
             m = abs(k(i,j));
             angle = atand(imag(k(i,j)),real(k(i,j)));
-            p(i,j) = strcat([string(m)," < ",string(angle), "°"]);       
+            p(i,j) = strcat([string(m)," < ",string(angle), "°"]);
         end
     end
 endfunction
-//CURTO NA BARRA 4
-NB1 = 4
-NB0 = 4
-//CURTO NA BARRA DEPOIS DO TRANSFORMADOR
-//NB1 = 5
-
-Z1=zeros(NB1,NB1)
-Z0=zeros(NB0,NB0)
-Zshunt0 = zeros(NB0,1)
-Zshunt1 = zeros(NB1,1)
 //Sequencia +/-:
 
 Z1(1,2) = 0.3406 + %i* 0.8261
@@ -104,6 +103,8 @@ Z0(2,3) = 0.3669 + %i* 0.7731
 Z0(3,2) = Z0(2,3)
 Z0(3,4) = 0.3863 + %i* 1.7991
 Z0(4,3) = Z0(3,4)
+// PARTE ADICIONAL PARA SEGUNDA PARTE DA ATIVIDADE
+//Z0(5,5) = %i*1.312
 
 //Impedancias Shunt
 
@@ -111,14 +112,17 @@ Z0(4,3) = Z0(3,4)
 Zshunt0(1) = %i*0.4201
 Zshunt1(1) = 0.011+%i*0.114
 
+// PARTE ADICIONAL PARA SEGUNDA PARTE DA ATIVIDADE
+//Zshunt1(4) = %i*1.312
+
 //CALCULO DE MATRIZES
 //Calculo Ybarra1
-Ybarra1 = ybarra(Zshunt1,Z1,NB1);
+Ybarra1 = ybarra(Zshunt1,Z1);
 //Calculo do Zbarra
 Zbarra1 = inv(Ybarra1);
 
 //Calculo Ybarra0
-Ybarra0 = ybarra(Zshunt0,Z0,NB0);
+Ybarra0 = ybarra(Zshunt0,Z0);
 //Calculo do Zbarra
 Zbarra0 = inv(Ybarra0);
 
@@ -138,34 +142,33 @@ Icc2 = [0; Icc2b; -Icc2b];
 //Tensões Durante a falta
 
 //SEQ 0 (Zbarra, Tipo da corrente, sequencia))
-Vfalta01 = vfalta(Zbarra0, Icc1, 0, NB0);
-Vfalta02 = vfalta(Zbarra0, Icc2, 0, NB0);
-Vfalta03 = vfalta(Zbarra0, Icc3, 0, NB0);
+Vfalta01 = vfalta(Zbarra0, Icc1, 0);
+Vfalta02 = vfalta(Zbarra0, Icc2, 0);
+Vfalta03 = vfalta(Zbarra0, Icc3, 0);
 
 //SEQ POSITIVA
-Vfalta11 = vfalta(Zbarra1, Icc1, 1, NB1);
-Vfalta12 = vfalta(Zbarra1, Icc2, 1, NB1);
-Vfalta13 = vfalta(Zbarra1, Icc3, 1, NB1);
+Vfalta11 = vfalta(Zbarra1, Icc1, 1);
+Vfalta12 = vfalta(Zbarra1, Icc2, 1);
+Vfalta13 = vfalta(Zbarra1, Icc3, 1);
 
 //SEQ NEGATIVA
-Vfalta21 = vfalta(Zbarra1, Icc1, 2, NB1);
-Vfalta22 = vfalta(Zbarra1, Icc2, 2, NB1);
-Vfalta23 = vfalta(Zbarra1, Icc3, 2, NB1);
+Vfalta21 = vfalta(Zbarra1, Icc1, 2);
+Vfalta22 = vfalta(Zbarra1, Icc2, 2);
+Vfalta23 = vfalta(Zbarra1, Icc3, 2);
 
 //Correntes de Linha durante a falta
 
 //SEQ. 0
-Ilinha01 = ilinha(Vfalta01,Z0, NB0);
-Ilinha02 = ilinha(Vfalta02,Z0, NB0);
-Ilinha03 = ilinha(Vfalta03,Z0, NB0);
+Ilinha01 = ilinha(Vfalta01,Z0);
+Ilinha02 = ilinha(Vfalta02,Z0);
+Ilinha03 = ilinha(Vfalta03,Z0);
 
 //SEQ. POSITIVA
-Ilinha11 = ilinha(Vfalta11,Z1, NB1);
-Ilinha12 = ilinha(Vfalta12,Z1, NB1);
-Ilinha13 = ilinha(Vfalta13,Z1, NB1);
+Ilinha11 = ilinha(Vfalta11,Z1);
+Ilinha12 = ilinha(Vfalta12,Z1);
+Ilinha13 = ilinha(Vfalta13,Z1);
 
 //SEQ. NEGATIVA
-Ilinha21 = ilinha(Vfalta21,Z1, NB1);
-Ilinha22 = ilinha(Vfalta22,Z1, NB1);
-Ilinha23 = ilinha(Vfalta22,Z1, NB1);
-
+Ilinha21 = ilinha(Vfalta21,Z1);
+Ilinha22 = ilinha(Vfalta22,Z1);
+Ilinha23 = ilinha(Vfalta22,Z1);
