@@ -8,8 +8,8 @@ clc
 
 
 //Calculo do Ybarra
-NB = 4
-//NB=5
+//NB = 4 //PRIMEIRA PARTE
+NB = 5 // SEGUNDA PARTE
 Z1=zeros(NB,NB)
 Z0=zeros(NB,NB)
 Zb=zeros(NB,NB)
@@ -24,16 +24,17 @@ function[Y]= ybarra(Zshunt,Z)
         else
             Y(i,i) = 0.0
         end
-
+        
         for j = 1:NB
             if abs(Z(i,j)) ~= 0
-               Y(i,j) = (-1)*Z(i,j)^-1
-               Y(i,i) = Y(i,i) - Y(i,j)
-            end
-
+               Y(i,j) = (-1)*Z(i,j)^-1 
+               Y(i,i) = Y(i,i) - Y(i,j)      
+            end 
+             
         end
     end
 endfunction
+
 function[V]= vfalta(Zb,Icc,seq)
     if(seq == 1)
         for i = 1:NB
@@ -45,38 +46,50 @@ function[V]= vfalta(Zb,Icc,seq)
         end
     end
 endfunction
+
 function[I]= ilinha(Vf,Z)
     for i = 1:NB
          for j = 1:NB
-              if  (Z(i,j)) ~= 0.0
+              if  Z(i,j) ~= 0.0
                   I(i,j) = ((Vf(i,1)-Vf(j,1)) / Z(i,j));
               else
-                  I(i,j) = 0;
+                  I(i,j) = 0.0;
               end
          end
     end
 endfunction
+
 function[x]= toreal(x1,tipo)
     //Tipo0 - Corrente
-    //Tipo1 - Tensão
+    //Tipo1 - Tensão 69kV
+    //Tipo2 - Tensão 13.8kV
     sbase = 100E6;
-    vbase = 69E3;
-    ibase = sbase/vbase;
+    vbase1 = 69E3;
+    vbase2 = 13.8E3;
+    
+    ibase = sbase/(sqrt(3)*vbase2);
+    ibase2 = sbase/vbase2;
     if(tipo == 0)
         x = x1*ibase;
+    elseif (tipo == 1)
+        x = x1*vbase1;
     else
-        x = x1*vbase;
+        x = x1*vbase2;
     end
 endfunction
+
+
 function[p]= topolar(k)
     for i = 1:size(k, "r")
         for j = 1:size(k, "c")
             m = abs(k(i,j));
             angle = atand(imag(k(i,j)),real(k(i,j)));
-            p(i,j) = strcat([string(m)," < ",string(angle), "°"]);
+            p(i,j) = strcat([string(m)," < ",string(angle), "°"]);       
         end
     end
 endfunction
+
+
 //Sequencia +/-:
 
 Z1(1,2) = 0.3406 + %i* 0.8261
@@ -87,10 +100,6 @@ Z1(2,3) = 0.2923 + %i* 0.2472
 Z1(3,2) = Z1(2,3)
 Z1(3,4) = 0.1996 + %i* 0.4842
 Z1(4,3) = Z1(3,4)
-
-// PARTE ADICIONAL PARA SEGUNDA PARTE DA ATIVIDADE
-//Z1(4,5) = %i*1.312
-//Z1(5,4) = Z1(4,5)
 
 
 //Sequencia 0:
@@ -103,23 +112,34 @@ Z0(2,3) = 0.3669 + %i* 0.7731
 Z0(3,2) = Z0(2,3)
 Z0(3,4) = 0.3863 + %i* 1.7991
 Z0(4,3) = Z0(3,4)
-// PARTE ADICIONAL PARA SEGUNDA PARTE DA ATIVIDADE
-//Z0(5,5) = %i*1.312
+
 
 //Impedancias Shunt
 
 //Zth:
-Zshunt0(1) = %i*0.4201
-Zshunt1(1) = 0.011+%i*0.114
+Zshunt0(1) = %i*0.4201;
+Zshunt1(1) = 0.011+%i*0.114;
+
+//-------------------------------------------------------//-------------------
+// PARTE ADICIONAL PARA SEGUNDA PARTE DA ATIVIDADE
+Z1(5,4) = %i*1.312;
+Zshunt0(5) = %i*1.312;
+
+
+
 
 //CALCULO DE MATRIZES
 //Calculo Ybarra1
 Ybarra1 = ybarra(Zshunt1,Z1);
+
 //Calculo do Zbarra
 Zbarra1 = inv(Ybarra1);
 
+
 //Calculo Ybarra0
 Ybarra0 = ybarra(Zshunt0,Z0);
+
+
 //Calculo do Zbarra
 Zbarra0 = inv(Ybarra0);
 
@@ -129,7 +149,7 @@ Zbarra0 = inv(Ybarra0);
 //Corrente de curto trifásica
 Icc3 = [0; 1/Zbarra1(4,4); 0];
 // Corrente de curto Monofásica
-Icc1b = 1/(2*Zbarra1(4,4)+Zbarra0(4,4));
+Icc1b = 1/(2*Zbarra1(5,5)+Zbarra0(5,5));
 Icc1 = [Icc1b; Icc1b; Icc1b];
 
 // Corrente de curto Bifásica
@@ -169,3 +189,7 @@ Ilinha13 = ilinha(Vfalta13,Z1);
 Ilinha21 = ilinha(Vfalta21,Z1);
 Ilinha22 = ilinha(Vfalta22,Z1);
 Ilinha23 = ilinha(Vfalta22,Z1);
+
+
+
+
